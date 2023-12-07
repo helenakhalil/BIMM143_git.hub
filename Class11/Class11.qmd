@@ -1,0 +1,67 @@
+---
+title: "Class11"
+author: "Helena Khalil A16313711"
+format: pdf
+---
+
+
+#Section 1, Proportion of G/G in a population 
+
+Downloded a CSV file from Ensemble 
+https://www.ensembl.org/Homo_sapiens/Variation/Sample?db=core;r=17:39894595-39895595;v=rs8067378;vdb=variation;vf=105535077#_
+
+Here we read this CSV file 
+
+```{r}
+mxl <- read.csv("373531-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378 (1).csv")
+head(mxl)
+```
+```{r}
+table(mxl$Genotype..forward.strand)
+```
+
+```{r}
+table(mxl$Genotype..forward.strand.)/nrow(mxl)*100
+```
+
+
+Lets look at a different population. I picked the GBR. 
+
+```{r}
+gbr <- read.csv("373522-SampleGenotypes-Homo_sapiens_Variation_Sample_rs8067378 (1).csv")
+head(gbr)
+```
+Find proportion of GIG 
+```{r}
+round(table(gbr$Genotype..forward.strand.)/ nrow(gbr)*100,2)
+```
+This varient which is associated with child asthma is more frequent in the GBR population than the MKL population 
+
+Lets now dig into this further 
+
+
+Section 4 
+
+How many samples do we have? 
+```{r}
+expr <- read.table("rs8067378_ENSG00000172057.6.txt")
+head(expr)
+```
+
+```{r}
+nrow(expr)
+```
+
+```{r}
+table(expr$geno)
+```
+
+```{r}
+library(ggplot2)
+```
+Lets make a boxplot 
+
+```{r}
+ggplot(expr)+aes(geno, exp, fill=geno)+geom_boxplot(notch=TRUE)
+```
+
