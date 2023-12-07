@@ -1,0 +1,211 @@
+---
+title: "Class 07: Machine Learning 1"
+author: "Helena Khalil #A16313711"
+format: pdf
+---
+
+We will start today's lab with clustering methods, in particular so-called K-means. The main function for this in R is `kmeans()`. 
+
+Let's try it on some made up data where we know what the answer should be 
+
+```{r}
+x<- rnorm(10000, mean=3)
+hist(x)
+```
+
+
+60 points 
+```{r}
+tmp <- c(rnorm(30, mean=3), rnorm(30,mean=-3))
+x <- cbind(x=tmp, y=rev(tmp))
+head(x)
+```
+
+We can pass this to the base R `plot()` function fot a quick. 
+```{r}
+plot(x)
+```
+
+```{r}
+k <- kmeans(x,centers=2,nstart=20)
+k
+
+```
+>Q1. How mnay points are in each cluster? 
+
+```{r}
+k$size
+```
+
+>Q2. Cluster membership?
+
+```{r}
+k$cluster
+```
+
+
+>Q3. Cluster centers? 
+
+```{r}
+k$centers
+```
+
+>Q4. Plot my clustering results
+
+```{r}
+plot(x, col=k$cluster, pch=16)
+```
+
+
+>Q5. Cluster the data again with kmeans() into 4 groups and plot the results. 
+
+```{r}
+k4 <- kmeans(x, centers=4, nstart=20)
+plot(x, col=k4$cluster, pch=16)
+
+```
+K-menas is very popular mostly because it is fast and relatively straightforward to run and understand. It has a big limitation in that you need to tell it how mnay groups (k, or centers) you want. 
+#Hierarchical clustering 
+
+The main function in base R is called `hclust()`. You have to pass it in a "distance matrix" not just your input data. 
+
+You can generate a distance matrix with the `dist()` function. 
+
+```{r}
+hc <- hclust(dist(x))
+hc
+```
+
+```{r}
+plot(hc)
+```
+To find the clisters (cluster membership vector) from a 'hclust()` result we can "cut" the tree at a certain height that we like. 
+
+```{r}
+plot(hc)
+abline(h=8, col="red")
+grps <- cutree(hc, h=8)
+```
+
+```{r}
+table(grps)
+```
+
+>Q6. Plot our hclust results. 
+
+```{r}
+plot(x,col=grps,pch=16)
+```
+
+#Principal Component Analysis 
+
+##PCA of UK food data 
+
+Read  data showinf the consumpt
+
+Let's see how PCA can help us but first we can try conventional analysis. 
+
+```{r}
+url <- "https://tinyurl.com/UK-foods"
+x <- read.csv(url)
+x
+```
+
+>Q1. How many rows and columns are in your new data frame named x? What R functions could you use to answer this questions?
+
+```{r}
+dim(x)
+```
+```{r}
+x
+```
+ I need to fix that first column...
+```{r}
+rownames(x) <- x[,1]
+x <- x[,-1]
+head(x)
+```
+```{r}
+dim(x)
+```
+
+```{r}
+url <- "https://tinyurl.com/UK-foods"
+x <- read.csv(url)
+x <- read.csv(url, row.names=1)
+head(x)
+```
+
+
+>Q2. Which approach to solving the ‘row-names problem’ mentioned above do you prefer and why? Is one approach more robust than another under certain circumstances?
+
+The first approch take away a column each time which if you play it multiple times it will start deleating data. 
+
+```{r}
+barplot(as.matrix(x), beside=T, col=rainbow(nrow(x)))
+```
+>Q3: Changing what optional argument in the above barplot() function results in the following plot?
+
+Changing the beside factor to falsse makes it a thicker bar chart 
+
+
+>Q5: Generating all pairwise plots may help somewhat. Can you make sense of the following code and resulting figure? What does it mean if a given point lies on the diagonal for a given plot?
+
+The diagonal of the plot shows similarities between the countries and the green dot is the outlier. 
+
+```{r}
+pairs(x, col=rainbow(10), pch=17)
+```
+
+>Q6. What is the main differences between N. Ireland and the other countries of the UK in terms of this data-set?
+
+It is hard to tell but Ireland looks different than the other countries, its like the outlier in the situation 
+
+##Principal Component Analysis (PCA)
+
+PCA can help us make sense of these types of datasets. Let's see how it works.
+
+The main function in "base" R is called `prcomp()`. In this case we want to first take the transpose of our input `x` so the colums are the food types and the countries are the rows. 
+
+```{r}
+head(t(x))
+```
+
+```{r}
+pca <- prcomp(t(x) )
+summary(pca)
+```
+
+>Q7. Complete the code below to generate a plot of PC1 vs PC2. The second line adds text labels over the data points.
+
+```{r}
+pca$x
+```
+```{r}
+plot(pca$x[,1], pca$x[,2], col=c("orange", "red", "blue", "darkgreen"), pch=16)
+```
+>Q8. Customize your plot so that the colors of the country names match the colors in our UK and Ireland map and table at start of this document.
+
+```{r}
+plot(pca$x[,1], pca$x[,2], col=c("orange", "red", "blue", "darkgreen"), pch=16)
+text(pca$x[,1], pca$x[,2],colnames(x), col=c("orange", "red", "blue", "darkgreen"))
+```
+
+The "loading tell us how much the original variables (in our case the foods) contribute to the new variables. 
+```{r}
+head(pca$rotation)
+```
+
+```{r}
+par(mar=c(10, 3, 0.35, 0))
+barplot( pca$rotation[,1], las=2 )
+```
+>Q9: Generate a similar ‘loadings plot’ for PC2. What two food groups feature prominantely and what does PC2 maninly tell us about?
+
+Fresh potatos and soft drinks, it tells us about the food groups that differ significantly with Ireland vs the other countries. It accounts for the varients that it didn't account for in PC1 
+
+```{r}
+par(mar=c(10, 3, 0.35, 0))
+barplot( pca$rotation[,2], las=2 )
+```
+

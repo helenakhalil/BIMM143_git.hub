@@ -1,0 +1,255 @@
+---
+title: "Class08"
+author: "Helena Khalil #A16313711"
+format: pdf
+---
+
+##Data input 
+The data is supplied on CSV format: 
+
+```{r}
+wisc.df <- read.csv("Class08.csv", row.names=1)
+head(wisc.df)
+```
+```{r}
+diagnosis <-as.factor(wisc.df$diagnosis)
+wisc.data <- wisc.df[,-1]
+```
+
+>Q1. How mnay observations are in this dataset?
+
+```{r}
+nrow(wisc.df)
+```
+
+There are 569 people in this data set being observed 
+
+> Q2. How many of the observations have a malignant diagnosis?
+
+```{r}
+table(wisc.df$diagnosis)
+
+```
+There are 212 people with the malignant diagnosis. Or you could do it this way
+```{r}
+sum(wisc.df$diagnosis=="M")
+```
+
+>Q3. How many variables/features in the data are suffixed with _mean?
+
+```{r}
+x <- colnames(wisc.df)
+```
+```{r}
+length(grep("mean", x,))
+```
+# Principal Component Analysis
+
+We need to scale our input data beofre PCA as some of the columns are measured in terns of very different units with different means ans different variances. The upshot here is we sert `scale=TRUE` argument to `prcomp()`
+```{r}
+# Check column means and standard deviations
+colMeans(wisc.data)
+
+apply(wisc.data,2,sd)
+```
+
+```{r}
+# Perform PCA on wisc.data by completing the following code
+wisc.pr <- prcomp(wisc.data, scale=TRUE)
+summary(wisc.pr)
+
+```
+```{r}
+plot(wisc.pr$x[,1], wisc.pr$x[,2], col=diagnosis)
+```
+
+
+>Q4. From your results, what proportion of the original variance is captured by the first principal components (PC1)?
+
+44.27% of the original varience is captured by the first principle component. 
+>Q5. How many principal components (PCs) are required to describe at least 70% of the original variance in the data?
+
+PC1, PC2, PC3 
+
+>Q6. How many principal components (PCs) are required to describe at least 90% of the original variance in the data?
+
+PC1, PC2, PC3, PC4, PC5, PC6, PC7
+
+```{r}
+biplot(wisc.pr)
+```
+
+>Q7. What stands out to you about this plot? Is it easy or difficult to understand? Why?
+
+It's a hot mess, it's hard to read and everything is overlapping. 
+
+```{r}
+# Scatter plot observations by components 1 and 2
+plot( wisc.pr$x , col = diagnosis , 
+     xlab = "PC1", ylab = "PC2")
+```
+
+>Q8. Generate a similar plot for principal components 1 and 3. What do you notice about these plots?
+
+The first plot has a cleaner cut and has cleaner clusters, while this one has less clean data 
+
+```{r}
+# Repeat for components 1 and 3
+plot(wisc.pr$x[, 1],wisc.pr$x[, 3], col = diagnosis, 
+     xlab = "PC1", ylab = "PC3")
+```
+
+```{r}
+# Create a data.frame for ggplot
+df <- as.data.frame(wisc.pr$x)
+df$diagnosis <- diagnosis
+
+# Load the ggplot2 package
+library(ggplot2)
+
+# Make a scatter plot colored by diagnosis
+ggplot(df) + 
+  aes(PC1, PC2, col=diagnosis,) + 
+  geom_point()
+
+```
+
+```{r}
+# Calculate variance of each component
+pr.var <- wisc.pr$sdev^2
+head(pr.var)
+```
+```{r}
+# Variance explained by each principal component: pve
+pve <- pr.var/ sum(pr.var)
+
+# Plot variance explained for each principal component
+plot(pve, xlab = "Principal Component", 
+     ylab = "Proportion of Variance Explained", 
+     ylim = c(0, 1), type = "o")
+```
+
+```{r}
+# Alternative scree plot of the same data, note data driven y-axis
+barplot(pve, ylab = "Precent of Variance Explained",
+     names.arg=paste0("PC",1:length(pve)), las=2, axes = FALSE)
+axis(2, at=pve, labels=round(pve,2)*100 )
+```
+
+Optional: 
+
+```{r}
+library(factoextra)
+fviz_eig(wisc.pr, addlabels = TRUE)
+
+```
+>Q9. For the first principal component, what is the component of the loading vector (i.e. wisc.pr$rotation[,1]) for the feature concave.points_mean?
+
+```{r}
+wisc.pr$rotation[,1]["concave.points_mean"]
+```
+
+>Q10. What is the minimum number of principal components required to explain 80% of the variance of the data?
+
+PC1, PC2, PC3, PC4, PC5 (so five of them)
+
+## Hierarchical Clustering 
+```{r}
+# Scale the wisc.data data using the "scale()" function
+data.scaled <- scale(wisc.data)
+```
+```{r}
+data.dist <- dist(data.scaled)
+```
+```{r}
+wisc.hclust <- hclust(data.dist, method="complete")
+```
+
+>Q11. Using the plot() and abline() functions, what is the height at which the clustering model has 4 clusters?
+
+```{r}
+plot(wisc.hclust)
+abline(h=20, col="red", lty=2)
+```
+
+```{r}
+wisc.hclust.clusters <- cutree(wisc.hclust, k=4)
+```
+```{r}
+table(wisc.hclust.clusters, diagnosis)
+```
+>Q12. Can you find a better cluster vs diagnoses match by cutting into a different number of clusters between 2 and 10?
+
+4 is the best cluster number, it gives us the 2 clusters that we need and separates they into mostly benine and mostley malignent. Too many clusters separates them into usless clusters. 
+
+>Q13. Which method gives your favorite results for the same data.dist dataset? Explain your reasoning.
+
+ward.D2 is my favorite because it balances clusters and minimizes the varience making the clusters well defined. 
+
+##4 K-means clustering 
+
+
+
+
+##5. Combining methods
+This approch will take not orignial data but our PCA results and work with them. 
+```{r}
+d <- dist(wisc.pr$x[,1:3])
+wisc.pr.hclust <- hclust(d, method= "ward.D2")
+plot(wisc.pr.hclust)
+```
+Generate 2 cluster groups from this hclust object. 
+```{r}
+grps <- cutree(wisc.pr.hclust, k=2)
+grps
+```
+
+```{r}
+plot(wisc.pr$x[,1], wisc.pr$x[,2], col=grps)
+```
+
+```{r}
+table(grps)
+```
+
+```{r}
+table(diagnosis)
+```
+```{r}
+table(diagnosis, grps)
+```
+```{r}
+plot(wisc.pr$x[,1:2], col=grps)
+```
+```{r}
+plot(wisc.pr$x[,1:2], col=diagnosis)
+```
+
+```{r}
+g <- as.factor(grps)
+levels(g)
+```
+```{r}
+g <- relevel(g,2)
+levels(g)
+```
+```{r}
+# Plot using our re-ordered factor 
+plot(wisc.pr$x[,1:2], col=g)
+```
+```{r}
+## Use the distance along the first 7 PCs for clustering i.e. wisc.pr$x[, 1:7]
+wisc.pr.hclust <- hclust (dist(wisc.pr$x[,1:7]), method="ward.D2")
+```
+
+```{r}
+ wisc.pr.hclust.clusters <- cutree(wisc.pr.hclust, k=2)
+```
+
+>Q15. How well does the newly created model with four clusters separate out the two diagnoses?
+
+```{r}
+# Compare to actual diagnoses
+table(wisc.pr.hclust.clusters, diagnosis)
+```
+It separates them out pretty well and is clear. 
