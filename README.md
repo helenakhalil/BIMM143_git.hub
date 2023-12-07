@@ -6,6 +6,6 @@ My classwork for F23 in BIMM143 [BIMM143](https://bioboot.github.io/bimm143_F23/
 - Class07: [Something else](https://github.com/helenakhalil/BIMM143_git.hub/blob/main/Class07/Class07.pdf)
 - Class08: [change](https://github.com/helenakhalil/BIMM143_git.hub/blob/main/Class08/Class08.pdf)
 - Class09: [change](https://github.com/helenakhalil/BIMM143_git.hub/blob/main/Class09/Class09.pdf)
-- Class10: [change]
-- Class11: [change]
+- Class10: [change](https://github.com/helenakhalil/BIMM143_git.hub/blob/main/Class10/Class10.pdf)
+- Class11: [change] 
 - Class12: [change]   
